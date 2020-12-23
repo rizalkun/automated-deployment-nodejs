@@ -1,0 +1,55 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  build:
+    name: Build and Test App
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [14.x]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm install
+    - run: npm run build --if-present
+    - run: npm run test
+
+  Deployment:
+    name: Deployment
+    needs: build
+    runs-on: ubuntu-latest
+
+    environment:
+      name: zuwindastaging
+    steps:
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - run: npm run build --if-present
+    - name: Deployment
+      uses: easingthemes/ssh-deploy@v2.1.4
+      with:
+        # Private Key
+        SSH_PRIVATE_KEY: ${{ secrets.PRIVATE_KEY }}
+        # Remote host
+        REMOTE_HOST: ${{ secrets.HOST }}
+        # Remote user
+        REMOTE_USER: ${{ secrets.USER }}
+        # Remote port
+        REMOTE_PORT: 22
+        # Source directory
+        SOURCE: /dist
+        # optional, default is
+        # Target directory
+        TARGET: /usr/node/automated-deployment-nodejs
+        # Arguments to pass to rsync
+        ARGS: "-rltgoDzvO --exclude '.env'"
