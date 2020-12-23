@@ -13,3 +13,6 @@ NodeJS automated deployment using ssh
    - USER
 
 each variable according to the value of your server access
+
+Note:
+in .github/workflows/deployment.yml you have to adjust the target file directory on the server
